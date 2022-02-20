@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/utils/Create2.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /// Creation code that clones the address returned by msg.sender.implementation()
 function beaconImplCloner() pure returns (bytes memory) {
@@ -39,7 +40,7 @@ function beaconImplCloner() pure returns (bytes memory) {
 
 error WillNotSelfDestruct();
 
-contract CacheableBeacon {
+contract CacheableBeacon is Ownable {
     bytes32 constant SALT = 0;
 
     address public implementation;
@@ -53,7 +54,7 @@ contract CacheableBeacon {
         Create2.deploy(0, 0, beaconImplCloner());
     }
 
-    function upgradeTo(address newImplementation) public {
+    function upgradeTo(address newImplementation) public onlyOwner {
         _validateImplementation(newImplementation);
         if (cache.code.length > 0) {
             CacheableBeaconImpl(cache).selfDestructIfCache();
