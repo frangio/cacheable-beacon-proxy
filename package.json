@@ -1,0 +1,15 @@
+{
+  "name": "cachedbeacon",
+  "private": true,
+  "scripts": {
+    "test": "hardhat test"
+  },
+  "author": "Francisco Giordano <fg@frang.io>",
+  "license": "MIT",
+  "dependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.5",
+    "@openzeppelin/contracts": "^4.5.0",
+    "hardhat": "^2.8.4",
+    "hardhat-gas-reporter": "^1.0.8"
+  }
+}
