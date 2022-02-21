@@ -57,7 +57,7 @@ in theory these are relatively negligible.
 | UUPS             | 1 (impl)        | 1 (impl)          | 2 (sload, delegatecall)        | 4700         |
 | Beacon           | 1 (impl)        | 2 (beacon, impl)  | 3 (call, sload, delegatecall)  | 7300         |
 | Blue-Green       | 0               | 2 (beacon, impl)  | 2 (extcodecopy, delegatecall)  | 5200         |
-| Cacheable Beacon | 0               | 1 (impl)          | 2 (extcodesize, delegatecall)  | 2700         |
+| Cacheable Beacon | 0               | 1 (cache)         | 2 (extcodesize, delegatecall)  | 2700         |
 | Metamorphic      | 0               | 0                 | 0                              | 0            |
 
 The patterns that rely on metamorphic contracts as a building block degrade to
@@ -66,7 +66,7 @@ a worst case (in exceptional situations) with the following characteristics.
 | Proxy            | Storage Touched | Addresses Touched            | Accesses                                    | Gas Overhead |
 |------------------|-----------------|------------------------------|---------------------------------------------|--------------|
 | Blue-Green       | 0               | 3 (beacon 1, beacon 2, impl) | 3 (extcodecopy, extcodecopy, delegatecalll) | 7800         |
-| Cacheable Beacon | 1 (impl)        | 2 (beacon, impl)             | 3 (extcodesize, call, sload, delegatecall)  | 7300         |
+| Cacheable Beacon | 1 (impl)        | 3 (cache, beacon, impl)      | 4 (extcodesize, call, sload, delegatecall)  | 9900         |
 
 ## Prior Art
 
@@ -80,9 +80,9 @@ Santiago Palladino [proposed to fix this] in a way akin to blue-green
 deployments, by keeping two beacons which can be selfdestructed in turns so
 that the proxy is never broken. This design works, but although it might sound
 like it should have similar best-case performance than the pattern described
-here, as seen in the previous section it suffers from an additional cold address access. It even has better worst-case
-
-performance, and significantly lower deployment costs (clones are expensive).
+here, in fact it performs an additional cold address access that results in
+greater cost. Worst-case performance is better, due to not using storage even
+in this situation, and upgrading the proxy has significantly lower cost.
 However, there is no mechanism to ensure the two beacons are in sync, or even
 that they are not selfdestructed at the same time.
 
