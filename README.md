@@ -33,18 +33,55 @@ After an upgrade, the clone can be recreated by invoking the `deployCache`
 function on the beacon, allowing the proxy to use the efficient code path
 again.
 
----
+## Comparison
+
+The table below shows the various patterns in use (and metamorphic contracts
+for comparison, though I don't think they have any real use) and how they fare
+in the key metrics that cause overhead over a non-proxied contract call.
+
+These key metrics are the number of storage slots touched and the number of
+addresses touched, and they're important because each time one of these is
+touched for the first time in a transaction (i.e. a cold access) they incur
+significant additional cost: 2000 gas for storage and 2500 gas for addresses.
+
+The Accesses column groups storage reads (SLOAD), "extcode" reads (EXTCODECOPY,
+EXTCODESIZE), and contract calls (CALL, DELEGATECALL), all of which have a
+baseline cost of 100 gas.
+
+Note: There are additional costs such as stack manipulation and memory use, but
+in theory these are relatively negligible.
+
+| Proxy            | Storage Touched | Addresses Touched | Accesses                       | Gas Overhead |
+|------------------|-----------------|-------------------|--------------------------------|--------------|
+| Transparent      | 2 (admin, impl) | 1 (impl)          | 3 (sload, sload, delegatecall) | 6800         |
+| UUPS             | 1 (impl)        | 1 (impl)          | 2 (sload, delegatecall)        | 4700         |
+| Beacon           | 1 (impl)        | 2 (beacon, impl)  | 3 (call, sload, delegatecall)  | 7300         |
+| Blue-Green       | 0               | 2 (beacon, impl)  | 2 (extcodecopy, delegatecall)  | 5200         |
+| Cacheable Beacon | 0               | 1 (impl)          | 2 (extcodesize, delegatecall)  | 2700         |
+| Metamorphic      | 0               | 0                 | 0                              | 0            |
+
+The patterns that rely on metamorphic contracts as a building block degrade to
+a worst case (in exceptional situations) with the following characteristics.
+
+| Proxy            | Storage Touched | Addresses Touched            | Accesses                                    | Gas Overhead |
+|------------------|-----------------|------------------------------|---------------------------------------------|--------------|
+| Blue-Green       | 0               | 3 (beacon 1, beacon 2, impl) | 3 (extcodecopy, extcodecopy, delegatecalll) | 7800         |
+| Cacheable Beacon | 1 (impl)        | 2 (beacon, impl)             | 3 (extcodesize, call, sload, delegatecall)  | 7300         |
+
+## Prior Art
 
 The use of metamorphic contracts for upgradeability has [long been known], but
-on its own is not acceptable because it leaves the proxy in a broken state in
-the window between SELFDESTRUCT and redeployment.
+they're arguably not enough on their own since the proxy is left in a broken
+state in the window between SELFDESTRUCT and redeployment.
 
 [long been known]: https://medium.com/@jason.carver/defend-against-wild-magic-in-the-next-ethereum-upgrade-b008247839d2
 
 Santiago Palladino [proposed to fix this] in a way akin to blue-green
 deployments, by keeping two beacons which can be selfdestructed in turns so
-that the proxy is never broken. This design works and has similar best-case
-performance than the pattern described here. It even has better worst-case
+that the proxy is never broken. This design works, but although it might sound
+like it should have similar best-case performance than the pattern described
+here, as seen in the previous section it suffers from an additional cold address access. It even has better worst-case
+
 performance, and significantly lower deployment costs (clones are expensive).
 However, there is no mechanism to ensure the two beacons are in sync, or even
 that they are not selfdestructed at the same time.
