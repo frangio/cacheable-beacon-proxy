@@ -93,3 +93,16 @@ execute upgrades that ensures the system is always kept in a consistent state.
 The main downside is that the cost of an upgrade will more or less double,
 given that the new implementation needs to be deployed and then cloned in order
 to reenable the cache.
+
+## Caveat Emptor
+
+Is this a good idea? This pattern and metamorphic contracts in general rely on
+SELFDESTRUCT, a quirky EVM opcode that will likely be revised in the future,
+and possibly even removed. A [post on this issue by Vitalik] mentions
+upgradeability as one of the use cases and one of the two proposals continues
+to allow it, while the other doesn't. Ultimately, it is unclear whether this
+pattern will work in the future, but in case it breaks it may be advisable to
+include a way to permanently disable the cache and downgrade to a classic
+beacon proxy.
+
+[post on this issue by Vitalik]: https://hackmd.io/@vbuterin/selfdestruct
