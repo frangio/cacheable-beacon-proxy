@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./Proxy.sol";
+import "./CacheableBeaconProxy.sol";
 
 contract TestV1 is CacheableBeaconImpl {
     string constant public version = 'v1';
