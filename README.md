@@ -28,7 +28,7 @@ as ["metamorphic contracts"].
 
 The clone address is the value that can be immutably cached by the proxy. When
 the beacon is upgraded, the clone is selfdestructed in order to invalidate the
-cache. The beacon proxy considers the cache invalid if `EXTCODESIZE` returns 0
+cache. The beacon proxy considers the cache invalid if EXTCODESIZE returns 0
 for the clone.
 
 After an upgrade, the clone can be recreated by invoking the `deployCache`
@@ -62,8 +62,8 @@ in theory these are relatively negligible.
 | Cacheable Beacon | 0               | 1 (cache)         | 2 (extcodesize, delegatecall)  | 2700         |
 | Metamorphic      | 0               | 0                 | 0                              | 0            |
 
-The patterns that rely on metamorphic contracts as a building block degrade to
-a worst case (in exceptional situations) with the following characteristics.
+The patterns that rely on metamorphic contracts as a building block, in a few
+exceptional situations degrade to the following worst-case characteristics.
 
 | Proxy            | Storage Touched | Addresses Touched            | Accesses                                    | Gas Overhead |
 |------------------|-----------------|------------------------------|---------------------------------------------|--------------|
@@ -101,9 +101,9 @@ to reenable the cache.
 Is this a good idea? This pattern and metamorphic contracts in general rely on
 SELFDESTRUCT, a quirky EVM opcode that will likely be revised in the future,
 and possibly even removed. A [post on this issue by Vitalik] mentions
-upgradeability as one of the use cases and one of the two proposals continues
+upgradeability as one of the use cases, and one of the two proposals continues
 to allow it, while the other doesn't. Ultimately, it is unclear whether this
-pattern will work in the future, but in case it breaks it may be advisable to
+pattern will work in the future, but in case it breaks, it may be advisable to
 include a way to permanently disable the cache and downgrade to a classic
 beacon proxy.
 
