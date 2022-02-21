@@ -2,6 +2,8 @@
 
 **An upgradeable proxy with minimal overhead.**
 
+[`CacheableBeaconProxy.sol`](./contracts/CacheableBeaconProxy.sol)
+
 Cacheable Beacon Proxy is a design for upgradeable proxies that extends the
 beacon proxy pattern with an efficient cache. While upgradeable proxies
 generally require at least 2100 gas for a cold storage access to load the
