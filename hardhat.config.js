@@ -3,7 +3,14 @@ require('hardhat-gas-reporter');
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.9",
+  solidity: {
+    version: '0.8.9',
+    settings: {
+      optimizer: {
+        enabled: true,
+      },
+    },
+  },
   gasReporter: {
     currency: 'USD',
     coinmarketcap: process.env.COINMARKETCAP,
