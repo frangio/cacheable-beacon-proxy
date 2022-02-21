@@ -4,6 +4,87 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/utils/Create2.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+error WillNotSelfDestruct();
+
+/// An upgradeable beacon that can deploy a cache of its current implementation.
+/// The cache is deployed at a fixed address, it will be destroyed during an
+/// upgrade, and can be redeployed again at the same address.
+contract CacheableBeacon is Ownable {
+    address public implementation;
+    address public immutable cache;
+
+    bytes32 constant SALT = 0;
+
+    constructor() {
+        cache = Create2.computeAddress(SALT, keccak256(beaconImplCloner()));
+    }
+
+    function deployCache() external {
+        Create2.deploy(0, SALT, beaconImplCloner());
+    }
+
+    /// Upgrades the beacon to a new implementation, and destroys the cache for the current implementation.
+    function upgradeTo(address newImplementation) public onlyOwner {
+        _validateImplementation(newImplementation);
+        if (cache.code.length > 0) {
+            CacheableBeaconImpl(cache).selfDestructIfCache();
+        }
+        implementation = newImplementation;
+    }
+
+    /// Checks that the new implementation accepts this beacon and exposes selfdestruct.
+    function _validateImplementation(address impl) internal {
+        CacheableBeaconImpl beaconImpl = CacheableBeaconImpl(impl);
+        require(beaconImpl.beacon() == this);
+        try beaconImpl.selfDestructIfCache() {} catch (bytes memory error) {
+            require(bytes4(error) == WillNotSelfDestruct.selector);
+        }
+    }
+}
+
+/// A base contract that implements behavior necessary for an implementation to
+/// be used with a cacheable beacon. Implementations are necessarily tied to a
+/// single beacon.
+contract CacheableBeaconImpl {
+    CacheableBeacon public immutable beacon;
+
+    constructor(CacheableBeacon _beacon) {
+        beacon = _beacon;
+    }
+
+    /// Invokes self destruct only if invoked by the beacon and if the contract
+    /// that will be selfdestructed is the cache. Otherwise reverts.
+    function selfDestructIfCache() external {
+        if (msg.sender == address(beacon) && address(this) == beacon.cache()) {
+            selfdestruct(payable(msg.sender));
+        } else {
+            revert WillNotSelfDestruct();
+        }
+    }
+}
+
+contract CacheableBeaconProxy {
+    CacheableBeacon immutable beacon;
+    address immutable cache;
+
+    constructor(CacheableBeacon _beacon) {
+        beacon = _beacon;
+        cache = _beacon.cache();
+    }
+
+    fallback() external {
+        address impl = cache.code.length > 0 ? cache : beacon.implementation();
+        assembly {
+            calldatacopy(0, 0, calldatasize())
+            let result := delegatecall(gas(), impl, 0, calldatasize(), 0, 0)
+            returndatacopy(0, 0, returndatasize())
+            switch result
+            case 0 { revert(0, returndatasize()) }
+            default { return(0, returndatasize()) }
+        }
+    }
+}
+
 /// Creation code that clones the address returned by msg.sender.implementation()
 function beaconImplCloner() pure returns (bytes memory) {
     return
@@ -36,75 +117,4 @@ function beaconImplCloner() pure returns (bytes memory) {
     /* 27 */    hex"3c"             // extcodecopy          | 0 size
     /* 28 */    hex"f3"             // return
     ;
-}
-
-error WillNotSelfDestruct();
-
-contract CacheableBeacon is Ownable {
-    bytes32 constant SALT = 0;
-
-    address public implementation;
-    address public immutable cache;
-
-    constructor() {
-        cache = Create2.computeAddress(SALT, keccak256(beaconImplCloner()));
-    }
-
-    function deployCache() external {
-        Create2.deploy(0, 0, beaconImplCloner());
-    }
-
-    function upgradeTo(address newImplementation) public onlyOwner {
-        _validateImplementation(newImplementation);
-        if (cache.code.length > 0) {
-            CacheableBeaconImpl(cache).selfDestructIfCache();
-        }
-        implementation = newImplementation;
-    }
-
-    function _validateImplementation(address impl) internal {
-        CacheableBeaconImpl beaconImpl = CacheableBeaconImpl(impl);
-        require(beaconImpl.beacon() == this);
-        try beaconImpl.selfDestructIfCache() {} catch (bytes memory error) {
-            require(bytes4(error) == WillNotSelfDestruct.selector);
-        }
-    }
-}
-
-contract CacheableBeaconImpl {
-    CacheableBeacon public immutable beacon;
-
-    constructor(CacheableBeacon _beacon) {
-        beacon = _beacon;
-    }
-
-    function selfDestructIfCache() external {
-        if (msg.sender == address(beacon) && address(this) == beacon.cache()) {
-            selfdestruct(payable(msg.sender));
-        } else {
-            revert WillNotSelfDestruct();
-        }
-    }
-}
-
-contract CacheableBeaconProxy {
-    CacheableBeacon immutable beacon;
-    address immutable cache;
-
-    constructor(CacheableBeacon _beacon) {
-        beacon = _beacon;
-        cache = _beacon.cache();
-    }
-
-    fallback() external {
-        address impl = cache.code.length > 0 ? cache : beacon.implementation();
-        assembly {
-            calldatacopy(0, 0, calldatasize())
-            let result := delegatecall(gas(), impl, 0, calldatasize(), 0, 0)
-            returndatacopy(0, 0, returndatasize())
-            switch result
-            case 0 { revert(0, returndatasize()) }
-            default { return(0, returndatasize()) }
-        }
-    }
 }
