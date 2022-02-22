@@ -47,28 +47,28 @@ touched for the first time in a transaction (i.e. a cold access) they incur
 significant additional cost: 2000 gas for storage and 2500 gas for addresses.
 
 The Accesses column groups storage reads (SLOAD), "extcode" reads (EXTCODECOPY,
-EXTCODESIZE), and contract calls (CALL, DELEGATECALL), all of which have a
-baseline cost of 100 gas.
+EXTCODESIZE), and contract calls (STATICCALL, DELEGATECALL), all of which have
+a baseline cost of 100 gas.
 
 Note: There are additional costs such as stack manipulation and memory use, but
 in theory these are relatively negligible.
 
-| Proxy            | Storage Touched | Addresses Touched | Accesses                       | Gas Overhead |
-|------------------|-----------------|-------------------|--------------------------------|--------------|
-| Transparent      | 2 (admin, impl) | 1 (impl)          | 3 (sload, sload, delegatecall) | 6800         |
-| UUPS             | 1 (impl)        | 1 (impl)          | 2 (sload, delegatecall)        | 4700         |
-| Beacon           | 1 (impl)        | 2 (beacon, impl)  | 3 (call, sload, delegatecall)  | 7300         |
-| Blue-Green       | 0               | 2 (beacon, impl)  | 2 (extcodecopy, delegatecall)  | 5200         |
-| Cacheable Beacon | 0               | 1 (cache)         | 2 (extcodesize, delegatecall)  | 2700         |
-| Metamorphic      | 0               | 0                 | 0                              | 0            |
+| Proxy            | Storage Touched | Addresses Touched | Accesses                            | Gas Overhead |
+|------------------|-----------------|-------------------|-------------------------------------|--------------|
+| Transparent      | 2 (admin, impl) | 1 (impl)          | 3 (sload, sload, delegatecall)      | 6800         |
+| UUPS             | 1 (impl)        | 1 (impl)          | 2 (sload, delegatecall)             | 4700         |
+| Beacon           | 1 (impl)        | 2 (beacon, impl)  | 3 (staticcall, sload, delegatecall) | 7300         |
+| Blue-Green       | 0               | 2 (beacon, impl)  | 2 (extcodecopy, delegatecall)       | 5200         |
+| Cacheable Beacon | 0               | 1 (cache)         | 2 (extcodesize, delegatecall)       | 2700         |
+| Metamorphic      | 0               | 0                 | 0                                   | 0            |
 
 The patterns that rely on metamorphic contracts as a building block, in a few
 exceptional situations degrade to the following worst-case characteristics.
 
-| Proxy            | Storage Touched | Addresses Touched            | Accesses                                    | Gas Overhead |
-|------------------|-----------------|------------------------------|---------------------------------------------|--------------|
-| Blue-Green       | 0               | 3 (beacon 1, beacon 2, impl) | 3 (extcodecopy, extcodecopy, delegatecalll) | 7800         |
-| Cacheable Beacon | 1 (impl)        | 3 (cache, beacon, impl)      | 4 (extcodesize, call, sload, delegatecall)  | 9900         |
+| Proxy            | Storage Touched | Addresses Touched            | Accesses                                         | Gas Overhead |
+|------------------|-----------------|------------------------------|--------------------------------------------------|--------------|
+| Blue-Green       | 0               | 3 (beacon 1, beacon 2, impl) | 3 (extcodecopy, extcodecopy, delegatecalll)      | 7800         |
+| Cacheable Beacon | 1 (impl)        | 3 (cache, beacon, impl)      | 4 (extcodesize, staticcall, sload, delegatecall) | 9900         |
 
 ## Prior Art
 
