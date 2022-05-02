@@ -108,3 +108,9 @@ include a way to permanently disable the cache and downgrade to a classic
 beacon proxy.
 
 [post on this issue by Vitalik]: https://hackmd.io/@vbuterin/selfdestruct
+
+Additionally, because this pattern relies on cloning bytecode from one contract
+to another location, it will break some [Solidity patterns] that rely on the
+value of `address(this)` stored in an immutable variable.
+
+[Solidity patterns]: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.6.0/contracts/proxy/utils/UUPSUpgradeable.sol#L23-L36
