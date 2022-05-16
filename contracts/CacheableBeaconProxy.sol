@@ -31,7 +31,9 @@ contract CacheableBeacon is Ownable {
     /// Upgrades the beacon to a new implementation, and destroys the cache for the current implementation.
     function upgradeTo(address newImplementation) public onlyOwner {
         _validateImplementation(newImplementation);
-        CacheableBeaconImpl(cache).selfDestructIfCache();
+        if (cache.code.length > 0) {
+            CacheableBeaconImpl(cache).selfDestructIfCache();
+        }
         implementation = newImplementation;
     }
 
