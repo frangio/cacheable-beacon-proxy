@@ -25,6 +25,9 @@ contract CacheableBeacon is Ownable {
         if (implementation.code.length == 0) {
             revert EmptyImplementation();
         }
+        try CacheableBeaconImpl(implementation).selfDestructIfCache() {} catch (bytes memory error) {
+            require(bytes4(error) == WillNotSelfDestruct.selector);
+        }
         Create2.deploy(0, SALT, beaconImplCloner());
     }
 
@@ -41,9 +44,6 @@ contract CacheableBeacon is Ownable {
     function _validateImplementation(address impl) internal {
         CacheableBeaconImpl beaconImpl = CacheableBeaconImpl(impl);
         require(beaconImpl.beacon() == this);
-        try beaconImpl.selfDestructIfCache() {} catch (bytes memory error) {
-            require(bytes4(error) == WillNotSelfDestruct.selector);
-        }
     }
 }
 
