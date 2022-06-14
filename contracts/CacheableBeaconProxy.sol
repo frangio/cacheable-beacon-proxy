@@ -15,8 +15,9 @@ contract CacheableBeacon is Ownable {
 
     bytes32 constant SALT = 0;
 
-    constructor() {
+    constructor(address implementation_) {
         cache = Create2.computeAddress(SALT, keccak256(beaconImplCloner()));
+        _setImplementation(implementation_);
     }
 
     function deployCache() external {
