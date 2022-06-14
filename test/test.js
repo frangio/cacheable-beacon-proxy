@@ -1,5 +1,5 @@
 const { ethers } = require('hardhat');
-const { factory } = require('./utils');
+const { factory, computeBeaconAddress } = require('./utils');
 const assert = require('assert');
 
 const TestV1 = factory('TestV1');
@@ -10,9 +10,8 @@ const CacheableBeaconProxy = factory('CacheableBeaconProxy');
 let beacon, proxy, test;
 
 beforeEach('deploying beacon', async function () {
-  beacon = await CacheableBeacon.deploy();
-  const implV1 = await TestV1.deploy(beacon.address);
-  await beacon.upgradeTo(implV1.address);
+  const implV1 = await TestV1.deploy(await computeBeaconAddress());
+  beacon = await CacheableBeacon.deploy(implV1.address);
 });
 
 beforeEach('deploying proxy', async function () {

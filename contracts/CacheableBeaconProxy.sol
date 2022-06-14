@@ -15,35 +15,29 @@ contract CacheableBeacon is Ownable {
 
     bytes32 constant SALT = 0;
 
-    error EmptyImplementation();
-
-    constructor() {
+    constructor(address implementation_) {
         cache = Create2.computeAddress(SALT, keccak256(beaconImplCloner()));
+        _setImplementation(implementation_);
     }
 
     function deployCache() external {
-        if (implementation.code.length == 0) {
-            revert EmptyImplementation();
+        try CacheableBeaconImpl(implementation).selfDestructIfCache() {} catch (bytes memory error) {
+            require(bytes4(error) == WillNotSelfDestruct.selector);
         }
         Create2.deploy(0, SALT, beaconImplCloner());
     }
 
     /// Upgrades the beacon to a new implementation, and destroys the cache for the current implementation.
     function upgradeTo(address newImplementation) public onlyOwner {
-        _validateImplementation(newImplementation);
         if (cache.code.length > 0) {
             CacheableBeaconImpl(cache).selfDestructIfCache();
         }
-        implementation = newImplementation;
+        _setImplementation(newImplementation);
     }
 
-    /// Checks that the new implementation accepts this beacon and exposes selfdestruct.
-    function _validateImplementation(address impl) internal {
-        CacheableBeaconImpl beaconImpl = CacheableBeaconImpl(impl);
-        require(beaconImpl.beacon() == this);
-        try beaconImpl.selfDestructIfCache() {} catch (bytes memory error) {
-            require(bytes4(error) == WillNotSelfDestruct.selector);
-        }
+    function _setImplementation(address implementation_) private {
+        require(CacheableBeaconImpl(implementation_).beacon() == this);
+        implementation = implementation_;
     }
 }
 
