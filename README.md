@@ -1,3 +1,6 @@
+:warning: This pattern will likely become unusable in the next hard fork due to
+[EIP-4758]. See [Caveat Emptor](#caveat-emptor).
+
 # Cacheable Beacon Proxy
 
 **An upgradeable proxy with minimal overhead.**
@@ -108,6 +111,11 @@ include a way to permanently disable the cache and downgrade to a classic
 beacon proxy.
 
 [post on this issue by Vitalik]: https://hackmd.io/@vbuterin/selfdestruct
+
+**Update:** As of October 2022, [EIP-4758 Deactivate SELFDESTRUCT][EIP-4758] is
+scheduled for the upcoming Shanghai hard fork.
+
+[EIP-4758]: https://eips.ethereum.org/EIPS/eip-4758
 
 Additionally, because this pattern relies on cloning bytecode from one contract
 to another location, it will break some [Solidity patterns] that rely on the
