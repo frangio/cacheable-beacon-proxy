@@ -1,5 +1,4 @@
-:warning: This pattern will likely become unusable in the next hard fork due to
-[EIP-4758]. See [Caveat Emptor](#caveat-emptor).
+:warning: This pattern may become unusable soon due to [EIP-4758]. See [Caveat Emptor](#caveat-emptor).
 
 # Cacheable Beacon Proxy
 
@@ -113,7 +112,7 @@ beacon proxy.
 [post on this issue by Vitalik]: https://hackmd.io/@vbuterin/selfdestruct
 
 **Update:** As of October 2022, [EIP-4758 Deactivate SELFDESTRUCT][EIP-4758] is
-scheduled for the upcoming Shanghai hard fork.
+being discussed for the upcoming Shanghai hard fork.
 
 [EIP-4758]: https://eips.ethereum.org/EIPS/eip-4758
 
