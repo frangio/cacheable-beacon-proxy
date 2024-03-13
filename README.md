@@ -1,4 +1,5 @@
-:warning: This pattern may become unusable soon due to [EIP-4758]. See [Caveat Emptor](#caveat-emptor).
+> [!WARNING]
+> This pattern is no longer usable after the Cancun hard fork on Ethereum due to [EIP-6780]. See [Caveat Emptor](#caveat-emptor).
 
 # Cacheable Beacon Proxy
 
@@ -111,10 +112,10 @@ beacon proxy.
 
 [post on this issue by Vitalik]: https://hackmd.io/@vbuterin/selfdestruct
 
-**Update:** As of October 2022, [EIP-4758 Deactivate SELFDESTRUCT][EIP-4758] is
-being discussed for the upcoming Shanghai hard fork.
+**Update:** [EIP-6780 SELFDESTRUCT only in same transaction][EIP-6780] has now
+been included in Ethereum, starting with the Cancun hard fork.
 
-[EIP-4758]: https://eips.ethereum.org/EIPS/eip-4758
+[EIP-6780]: https://eips.ethereum.org/EIPS/eip-6780
 
 Additionally, because this pattern relies on cloning bytecode from one contract
 to another location, it will break some [Solidity patterns] that rely on the
